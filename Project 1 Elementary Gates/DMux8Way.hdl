@@ -2,7 +2,12 @@ CHIP DMux8Way {
   IN in, sel[3];
   OUT a, b, c, d, e, f, g, h;
   PARTS:
-  Not(in=sel[0], out=notsel0);
+  DMux(in=in, sel=sel[2], a=out0, b=out1);
+  DMux4Way(in=out0, sel=sel[0..1], a=a, b=b, c=c, d=d);
+  DMux4Way(in=out1, sel=sel[0..1], a=e, b=f, c=g, d=h);
+
+  // Verbose Implementation
+  /*Not(in=sel[0], out=notsel0);
   Not(in=sel[1], out=notsel1);
   Not(in=sel[2], out=notsel2);
 
@@ -20,5 +25,5 @@ CHIP DMux8Way {
   And(a=inAndsel2notsel1, b=notsel0, out=e);
   And(a=inAndsel2notsel1, b=sel[0], out=f);
   And(a=inAndsel21, b=notsel0, out=g);
-  And(a=inAndsel21, b=sel[0], out=h);
+  And(a=inAndsel21, b=sel[0], out=h);*/
 }
