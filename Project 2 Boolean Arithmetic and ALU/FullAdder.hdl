@@ -1,0 +1,21 @@
+CHIP FullAdder {
+  IN a, b, c;
+  OUT sum, carry;
+  PARTS:
+  HalfAdder(a=a, b=b, sum=sum1, carry=carry1);
+  HalfAdder(a=c, b=sum1, sum=sum, carry=carry2);
+  Or(a=carry1, b=carry2, out=carry);
+
+  // Verbose Implementation
+  /*Not(in=a, out=nota);
+  HalfAdder(a=b, b=c, sum=tmpsum, carry=tmpcarry);
+  Not(in=tmpsum, out=notsum);
+  And(a=nota, b=tmpsum, out=notaAndtmpsum);
+  And(a=a, b=notsum, out=aAndnotsum);
+  Or(a=notaAndtmpsum, b=aAndnotsum, out=sum);
+
+  Or(a=b, b=c, out=bOrc);
+  And(a=nota, b=tmpcarry, out=notaAndtmpcarry);
+  And(a=a, b=bOrc, out=aAndnotcarry);
+  Or(a=notaAndtmpcarry, b=aAndnotcarry, out=carry);*/
+}
