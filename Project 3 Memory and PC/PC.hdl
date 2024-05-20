@@ -1,0 +1,13 @@
+CHIP PC {
+  IN in[16], reset, load, inc;
+  OUT out[16];
+  PARTS:
+  Inc16(in=outlb, out=tmpincout);
+  Mux16(a=in, b=tmpincout, sel=inc, out=incout);
+  Mux16(a=incout, b=in, sel=load, out=loadout);
+  Mux16(a=loadout, b=false, sel=reset, out=prein);
+
+  Register(in=prein, load=true, out=out, out=outlb);
+
+  CLOCKED time;
+}

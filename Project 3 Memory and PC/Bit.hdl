@@ -1,0 +1,9 @@
+CHIP Bit {
+  IN in, load;
+  OUT out;
+  PARTS:
+  Mux(a=outlb, b=in, sel=load, out=dffin);
+  DFF(in=dffin, out=out, out=outlb);
+
+  CLOCKED time;
+}
