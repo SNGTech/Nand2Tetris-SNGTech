@@ -1,0 +1,52 @@
+CHIP CPU {
+  IN inM[16], instruction[16], reset;
+  OUT outM[16], writeM, addressM[15], pc[15];
+  PARTS:
+  Mux16(a[0..14]=instruction[0..14], b=outALU, sel=instruction[15], out=muxA);
+  Not(in=instruction[15], out=ainstruction);
+  Or(a=instruction[5], b=ainstruction, out=aload);
+  ARegister(in=muxA, load=aload, out[0..14]=addressM, out=regA);
+  And(a=instruction[4], b=instruction[15], out=dload);
+  DRegister(in=outALU, load=dload, out=outX);
+  Mux16(a=regA, b=inM, sel=instruction[12], out=outY);
+  ALU(x=outX, 
+      y=outY, 
+      zx=instruction[11], 
+      nx=instruction[10], 
+      zy=instruction[9], 
+      ny=instruction[8], 
+      f=instruction[7], 
+      no=instruction[6],
+      out=outALU, 
+      out=outM,
+      zr=zr, 
+      ng=ng);
+  And(a=instruction[3], b=instruction[15], out=writeM);
+
+  // JUMP LOGIC (START)
+  
+  Not(in=zr, out=notzr);
+  Not(in=ng, out=notng);
+
+  And(a=notzr, b=notng, out=jgt);
+  Or(a=jgt, b=zr, out=jge);
+  And(a=ng, b=notzr, out=jlt);
+  Or(a=jlt, b=zr, out=jle);
+
+  Mux8Way16(a[0]=false, 
+            b[0]=jgt, 
+            c[0]=zr, 
+            d[0]=jge, 
+            e[0]=jlt, 
+            f[0]=notzr, 
+            g[0]=jle, 
+            h[0]=true, 
+            sel=instruction[0..2], 
+            out[0]=muxload);
+
+  And(a=muxload, b=instruction[15], out=pcload);
+
+   // JUMP LOGIC (END)
+ 
+  PC(in=regA, load=pcload, inc=true, reset=reset, out[0..14]=pc);
+}
