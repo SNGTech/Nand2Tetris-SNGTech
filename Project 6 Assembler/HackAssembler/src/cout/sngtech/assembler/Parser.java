@@ -7,11 +7,14 @@ import java.io.IOException;
 
 public class Parser {
     BufferedReader br;
-    StringBuilder builder = new StringBuilder(); // DEBUG: For testing purposes
 
-    String currentLine = "";
+    String currentLine;
+    int scanLineNo;
 
     public Parser(String fileName) throws Exception {
+        this.currentLine = "";
+        this.scanLineNo = -1;
+
         File hackFile = new File(fileName);
         try {
             this.br = new BufferedReader(new FileReader((hackFile)));
@@ -20,11 +23,25 @@ public class Parser {
         }
     }
 
-    public int parseA_Instruction() {
-        return Integer.parseInt(this.currentLine.replace("@", ""));
+    public void parse_Label(SymbolTable symbolTable) {
+        String label = this.currentLine.substring(1, this.currentLine.length() - 1);
+        symbolTable.addLabelToTable(label, this.scanLineNo);
     }
 
-    public String parseC_Instruction_Control() {
+    public int parseA_Instruction(SymbolTable symbolTable) {
+        String address = this.currentLine.replace("@", "");
+        int lineNo = 0;
+
+        if (!Character.isDigit(address.charAt(0))) {
+            // If is variable
+            lineNo = symbolTable.getVarLineNo(address);
+        } else {
+            lineNo = Integer.parseInt(address);
+        }
+        return lineNo;
+    }
+
+    public String parseC_Instruction_Comp() {
         String comp = "0";
         int startIndex = 0, endIndex = this.currentLine.length();
 
@@ -63,7 +80,18 @@ public class Parser {
     // Terminates line (null)
     public String readNextLine() throws IOException {
         this.currentLine = this.br.readLine();
-        return this.currentLine == null ? null : this.currentLine.strip();
+        if (this.currentLine == null) {
+            return null;
+        }
+        if (!this.currentLine.strip().startsWith("(")
+                && !this.currentLine.strip().startsWith("//")
+                && !this.currentLine.isBlank())
+            scanLineNo++;
+        return this.currentLine.strip();
+    }
+
+    public void setNewCurrentLine(String newLine) {
+        this.currentLine = newLine;
     }
 
     // Reads current line and filters out any in-line comments
@@ -78,16 +106,7 @@ public class Parser {
             validLine = this.currentLine;
         }
 
-        this.currentLine = validLine;
-        return validLine;
-    }
-
-    public void addLine() {
-        this.builder.append(this.currentLine).append("\n");
-    }
-
-    // DEBUG: For testing purposes
-    public String getParsedCommands() {
-        return builder.toString();
+        this.currentLine = validLine.strip();
+        return validLine.strip();
     }
 }
