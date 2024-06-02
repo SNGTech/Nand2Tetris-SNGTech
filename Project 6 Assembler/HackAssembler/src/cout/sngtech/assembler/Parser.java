@@ -15,47 +15,60 @@ public class Parser {
         File hackFile = new File(fileName);
         try {
             this.br = new BufferedReader(new FileReader((hackFile)));
-            this.parseAll();
         } catch (Exception e) {
             throw new Exception("Failed to parse. Reason: Supplied file is not a valid Hack file!", e);
         }
     }
 
-    // Read continuously
-    private void parseAll() throws IOException {
-        while ((this.currentLine = this.readNextLine()) != null) {
-            String newLine = this.removeCommentsFromLine();
-            if (newLine.isBlank()) continue;
-            // A-Instruction
-            if (this.currentLine.startsWith("@")) {
-                newLine = parseA_Instruction();
-            } else {
-                // C-Instruction
-                newLine = parseC_Instruction();
-            }
-            this.addLine();
-        }
-    }
-
-    private int parseA_Instruction() {
+    public int parseA_Instruction() {
         return Integer.parseInt(this.currentLine.replace("@", ""));
     }
 
-    private String parseC_Instruction() {
-        int address = Integer.parseInt(this.currentLine.replace("@", ""));
-        return Integer.toBinaryString(address);
+    public String parseC_Instruction_Control() {
+        String comp = "0";
+        int startIndex = 0, endIndex = this.currentLine.length();
+
+        // Control
+        if (this.currentLine.contains("=")) {
+            startIndex = this.currentLine.indexOf("=") + 1;
+        }
+        if (this.currentLine.contains(";")) {
+            endIndex = this.currentLine.indexOf(";");
+        }
+        comp = this.currentLine.substring(startIndex, endIndex).strip();
+        return comp;
+    }
+
+    public String parseC_Instruction_Dest() {
+        String dest = null;
+
+        // Dest
+        if (this.currentLine.contains("=")) {
+            dest = this.currentLine.substring(0, this.currentLine.indexOf("="));
+        }
+        return dest;
+    }
+
+    public String parseC_Instruction_Jump() {
+        String jmp = null;
+
+        // Jump
+        if (this.currentLine.contains(";")) {
+            jmp = this.currentLine.substring(this.currentLine.indexOf(";") + 1).strip();
+        }
+        return jmp;
     }
 
     // Read the new line, removing all trailing and leading spaces (advance to)
     // Terminates line (null)
-    private String readNextLine() throws IOException {
+    public String readNextLine() throws IOException {
         this.currentLine = this.br.readLine();
         return this.currentLine == null ? null : this.currentLine.strip();
     }
 
     // Reads current line and filters out any in-line comments
     // Ignores pseudo-commands/comments
-    private String removeCommentsFromLine() {
+    public String removeCommentsFromLine() {
         String validLine;
         int commentIndex = this.currentLine.indexOf("//");
         // Remove all comments
@@ -69,7 +82,7 @@ public class Parser {
         return validLine;
     }
 
-    private void addLine() {
+    public void addLine() {
         this.builder.append(this.currentLine).append("\n");
     }
 
