@@ -13,6 +13,7 @@ void Parser::nextCommand()
 	do
 	{
 		std::getline(m_VMStream, line);
+		m_CurrentCommandInLabel = line.find("\t") == 0;
 		trim(line);
 		if (line.find("//") != std::string::npos)
 		{
@@ -54,6 +55,11 @@ CommandType Parser::getCommandType()
 		return CommandType::C_Return;
 	else
 		return CommandType::C_Invalid;
+}
+
+bool Parser::isInLabel()
+{
+	return m_CurrentCommandInLabel;
 }
 
 std::string Parser::getArg1()

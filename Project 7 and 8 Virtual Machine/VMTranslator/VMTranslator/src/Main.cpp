@@ -6,8 +6,8 @@
 
 int main() 
 {
-	Parser parser("res/test/test.vm");
-	CodeWriter codeWriter("res/translated/test.asm");
+	Parser parser("res/08/BasicLoop.vm");
+	CodeWriter codeWriter("res/translated/BasicLoop.asm");
 
 	while (parser.hasMoreCommands())
 	{
@@ -16,7 +16,7 @@ int main()
 		CommandType cmdType = parser.getCommandType();
 		std::string arg1 = parser.getArg1();
 		int arg2 = parser.getArg2();
-		std::cout << (int)parser.getCommandType() << ":\t" << arg1 << "\t" << arg2 << std::endl;
+		std::cout << (int)parser.getCommandType() << ":\t" << arg1 << "\t" << arg2 << "\t" << parser.isInLabel() << std::endl;
 
 		switch (cmdType)
 		{
@@ -28,6 +28,15 @@ int main()
 				break;
 			case CommandType::C_Pop:
 				codeWriter.writePop(arg1, arg2);
+				break;
+			case CommandType::C_Label:
+				codeWriter.writeLabel(arg1);
+				break;
+			case CommandType::C_Goto:
+				codeWriter.writeGoto(arg1);
+				break;
+			case CommandType::C_If:
+				codeWriter.writeIf(arg1);
 				break;
 		}
 	}

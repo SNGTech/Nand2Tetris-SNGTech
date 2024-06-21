@@ -5,12 +5,20 @@
 #include <vector>
 #include <sstream>
 
-void trim(std::string &str)
+// function trim taken from StackOverflow
+// https://stackoverflow.com/a/36000453 
+static void trim(std::string &str)
 {
-	std::regex_replace(str, std::regex{ R"(^\s+|\s+$)" }, "");
+	// right trim
+	while (str.length() > 0 && (str[str.length() - 1] == ' ' || str[str.length() - 1] == '\t'))
+		str.erase(str.length() - 1, 1);
+
+	// left trim
+	while (str.length() > 0 && (str[0] == ' ' || str[0] == '\t'))
+		str.erase(0, 1);
 }
 
-std::vector<std::string> split(const std::string &str, char delimiter)
+static std::vector<std::string> split(const std::string &str, char delimiter)
 {
 	std::istringstream strStream(str);
 	std::string token;

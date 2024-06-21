@@ -32,6 +32,29 @@ enum class ArithmeticType
 	Not
 };
 
+enum class Segment
+{
+	CONSTANT,
+	LOCAL,
+	ARGUMENT,
+	THIS,
+	THAT,
+	STATIC,
+	POINTER,
+	TEMP
+};
+
+static std::map<Segment, std::string> segments = {
+	{Segment::CONSTANT, "constant"},
+	{Segment::LOCAL, "local"},
+	{Segment::ARGUMENT, "argument"},
+	{Segment::THIS, "this"},
+	{Segment::THAT, "that"},
+	{Segment::TEMP, "temp"},
+	{Segment::STATIC, "static"},
+	{Segment::POINTER, "pointer"}
+};
+
 static std::map<ArithmeticType, std::string> arithmeticTypes = {
 	{ArithmeticType::Add, "add"},
 	{ArithmeticType::Sub, "sub"},

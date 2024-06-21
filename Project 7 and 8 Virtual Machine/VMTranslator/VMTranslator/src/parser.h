@@ -14,6 +14,7 @@ public:
 	void nextCommand();
 	bool hasMoreCommands();
 	CommandType getCommandType();
+	bool isInLabel();
 	std::string getArg1();
 	int getArg2();
 	std::string getCommand() { return m_CurrentCommand; };
@@ -22,6 +23,7 @@ public:
 private:
 	std::ifstream m_VMStream;
 	std::string m_CurrentCommand = "";
+	bool m_CurrentCommandInLabel = false;
 };
 
 #endif
