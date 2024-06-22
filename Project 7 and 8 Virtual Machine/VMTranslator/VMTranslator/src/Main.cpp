@@ -3,23 +3,39 @@
 #include <fstream>
 #include "parser.h"
 #include "code_writer.h"
+#include "utils.h"
 
-int main() 
+int main(int argc, char* argv[])
 {
-	Parser parser("res/08/BasicLoop.vm");
-	CodeWriter codeWriter("res/translated/BasicLoop.asm");
+	std::string programPath = argv[1];
+	std::vector<std::string> vmFiles;
 
-	while (parser.hasMoreCommands())
+	CodeWriter codeWriter(programPath);
+
+	if (isPathDirectory(programPath)) 
 	{
-		parser.nextCommand();
+		vmFiles = getFilesInDirectory(programPath);
+		codeWriter.writeBootstrap();
+	}
+	else
+		vmFiles.push_back(programPath);
 
-		CommandType cmdType = parser.getCommandType();
-		std::string arg1 = parser.getArg1();
-		int arg2 = parser.getArg2();
-		std::cout << (int)parser.getCommandType() << ":\t" << arg1 << "\t" << arg2 << "\t" << parser.isInLabel() << std::endl;
-
-		switch (cmdType)
+	for(std::string vmFile : vmFiles) 
+	{
+		codeWriter.setFileName(vmFile);
+		Parser parser(vmFile);
+		while (parser.hasMoreCommands())
 		{
+			parser.nextCommand();
+
+			CommandType cmdType = parser.getCommandType();
+			std::string arg1 = parser.getArg1();
+			int arg2 = parser.getArg2();
+			//std::cout << (int)parser.getCommandType() << ":\t" << arg1 << "\t" << arg2 << "\t" << parser.isInLabel() << std::endl;
+
+			codeWriter.setInLabel(parser.isInLabel());
+			switch (cmdType)
+			{
 			case CommandType::C_Arithmetic:
 				codeWriter.writeArithmetic(arg1);
 				break;
@@ -38,10 +54,20 @@ int main()
 			case CommandType::C_If:
 				codeWriter.writeIf(arg1);
 				break;
+			case CommandType::C_Function:
+				codeWriter.writeFunction(arg1, arg2);
+				break;
+			case CommandType::C_Call:
+				codeWriter.writeCall(arg1, arg2);
+				break;
+			case CommandType::C_Return:
+				codeWriter.writeReturn();
+				break;
+			}
 		}
+		parser.close();
 	}
 
-	parser.close();
 	codeWriter.close();
 	return 0;
 }

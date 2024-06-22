@@ -1,144 +1,160 @@
-// push constant 0
-@0
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
+	// push constant 0
+	@0
+	D=A
+	@SP
+	A=M
+	M=D
+	@SP
+	M=M+1
 
-// pop local 0
-@0
-D=A
-@LCL
-A=D+M
-D=A
-@segment
-M=D
-@SP
-M=M-1
-A=M
-D=M
-@segment
-A=M
-M=D
+	// pop local 0
+	@0
+	D=A
+	@LCL
+	A=D+M
+	D=A
+	@segment
+	M=D
+	@SP
+	M=M-1
+	A=M
+	D=M
+	@segment
+	A=M
+	M=D
 
 // label LOOP
 (LOOP)
-// push argument 0
-@0
-D=A
-@ARG
-A=D+M
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
 
-// push local 0
-@0
-D=A
-@LCL
-A=D+M
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
+	// push argument 0
+	@0
+	D=A
+	@ARG
+	A=D+M
+	D=M
+	@SP
+	A=M
+	M=D
+	@SP
+	M=M+1
 
-// add
-@SP
-M=M-1
-A=M
-D=M
-A=A-1
-M=D+M
+	// push local 0
+	@0
+	D=A
+	@LCL
+	A=D+M
+	D=M
+	@SP
+	A=M
+	M=D
+	@SP
+	M=M+1
 
-// pop local 0
-@0
-D=A
-@LCL
-A=D+M
-D=A
-@segment
-M=D
-@SP
-M=M-1
-A=M
-D=M
-@segment
-A=M
-M=D
+	// add
+	@SP
+	M=M-1
+	A=M
+	D=M
+	A=A-1
+	M=D+M
 
-// push argument 0
-@0
-D=A
-@ARG
-A=D+M
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
+	// pop local 0
+	@0
+	D=A
+	@LCL
+	A=D+M
+	D=A
+	@segment
+	M=D
+	@SP
+	M=M-1
+	A=M
+	D=M
+	@segment
+	A=M
+	M=D
 
-// push constant 1
-@1
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
+	// push argument 0
+	@0
+	D=A
+	@ARG
+	A=D+M
+	D=M
+	@SP
+	A=M
+	M=D
+	@SP
+	M=M+1
 
-// sub
-@SP
-M=M-1
-A=M
-D=M
-A=A-1
-M=M-D
+	// push constant 1
+	@1
+	D=A
+	@SP
+	A=M
+	M=D
+	@SP
+	M=M+1
 
-// pop argument 0
-@0
-D=A
-@ARG
-A=D+M
-D=A
-@segment
-M=D
-@SP
-M=M-1
-A=M
-D=M
-@segment
-A=M
-M=D
+	// sub
+	@SP
+	M=M-1
+	A=M
+	D=M
+	A=A-1
+	M=M-D
 
-// push argument 0
-@0
-D=A
-@ARG
-A=D+M
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
+	// pop argument 0
+	@0
+	D=A
+	@ARG
+	A=D+M
+	D=A
+	@segment
+	M=D
+	@SP
+	M=M-1
+	A=M
+	D=M
+	@segment
+	A=M
+	M=D
 
-// push local 0
-@0
-D=A
-@LCL
-A=D+M
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
+	// push argument 0
+	@0
+	D=A
+	@ARG
+	A=D+M
+	D=M
+	@SP
+	A=M
+	M=D
+	@SP
+	M=M+1
+
+	// if-goto LOOP
+	@SP
+	M=M-1
+	A=M
+	D=M
+	@LOOP
+	D;JGT
+
+	// push local 0
+	@0
+	D=A
+	@LCL
+	A=D+M
+	D=M
+	@SP
+	A=M
+	M=D
+	@SP
+	M=M+1
+
+// label END
+(END)
+
+	// goto END
+	@END
+	0;JMP
 

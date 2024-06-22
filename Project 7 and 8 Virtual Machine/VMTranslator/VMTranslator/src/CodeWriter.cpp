@@ -3,11 +3,22 @@
 #include <iostream>
 #include <sstream>
 
-CodeWriter::CodeWriter(std::string asmFilePath)
+CodeWriter::CodeWriter(std::string programPath)
 {
+	m_LabelFunctionPrefixes.push("");
+	std::string asmFilePath = "res/translated/" + getFileNameFromPath(programPath) + ".asm";
 	m_AsmStream = std::ofstream(asmFilePath);
-	m_FileName = split(asmFilePath, '/').back();
-	m_FileName = m_FileName.substr(0, m_FileName.find(".asm"));
+}
+
+void CodeWriter::writeBootstrap()
+{
+	m_AsmStream << std::string(\
+		"// bootstrap code\n" \
+		"@256\n" \
+		"D=A\n" \
+		"@SP\n" \
+		"M=D\n") << std::endl;
+	writeCall("Sys.init", 0);
 }
 
 void CodeWriter::writeArithmetic(const std::string cmd)
@@ -71,7 +82,7 @@ void CodeWriter::writeArithmetic(const std::string cmd)
 			"M=!M\n";
 	}
 	
-	m_AsmStream << snippet << std::endl;
+	write(snippet);
 }
 
 void CodeWriter::writePush(const std::string segment, int index)
@@ -130,7 +141,7 @@ void CodeWriter::writePush(const std::string segment, int index)
 			PUSH_POINTER_SNIPPET(index);
 	}
 
-	m_AsmStream << snippet << std::endl;
+	write(snippet);
 }
 
 void CodeWriter::writePop(const std::string segment, int index)
@@ -183,33 +194,106 @@ void CodeWriter::writePop(const std::string segment, int index)
 			POP_POINTER_SNIPPET(index);
 	}
 
-	m_AsmStream << snippet << std::endl;
+	write(snippet);
 }
 
 void CodeWriter::writeLabel(const std::string label)
 {
-	std::string snippet = std::string("// label " + label + "\n" + \
-		                              "(" + label + ")");
-	m_AsmStream << snippet << std::endl;
+	std::string snippet = std::string("// label " + label + "\n") + \
+		                              LABEL_SNIPPET(m_LabelFunctionPrefixes.top() + label);
+	m_AsmStream << snippet;
 }
 
 void CodeWriter::writeGoto(const std::string label)
 {
-	std::string snippet = std::string("// goto " + label + "\n" + \
-									  "@" + label + "\n") + std::string(\
-									  "0;JMP\n");
-	m_AsmStream << snippet << std::endl;
+	std::string snippet = std::string("// goto " + label + "\n") + \
+									  GOTO_SNIPPET(m_LabelFunctionPrefixes.top() + label);
+	write(snippet);
 }
 
 void CodeWriter::writeIf(const std::string label)
 {
 	std::string snippet = std::string("// if-goto " + label + "\n") + std::string(\
 		                  "@SP\n" \
-		                  "A=M-1\n" \
+		                  "M=M-1\n" \
+						  "A=M\n" \
 		                  "D=M\n") + std::string(\
-		                  "@" + label + "\n") + std::string(\
-						  "0;JEQ\n");
-	m_AsmStream << snippet << std::endl;
+		                  "@" + m_LabelFunctionPrefixes.top() + label + "\n") + std::string(\
+						  "D+1;JEQ\n" \
+						  "D;JGT\n");
+	write(snippet);
+}
+
+void CodeWriter::writeFunction(const std::string functionName, int nVars)
+{
+	std::string snippet = LABEL_SNIPPET(functionName) + "\n" \
+						  "\t// initialise local variables in function\n";
+
+	for (int i = 0; i < nVars; i++)
+	{
+		snippet += INIT_LOCAL + "\n";
+	}
+
+	snippet += "\t" + std::string("// handle function execution\n");
+
+	write(snippet);
+
+	if (m_LabelFunctionPrefixes.top() != functionName + "$")
+		m_LabelFunctionPrefixes.push(functionName + "$");
+}
+
+void CodeWriter::writeReturn()
+{
+	std::string snippet = std::string(\
+						  "// return\n") + \
+		                  END_FRAME + \
+						  RESTORE_VALUE("retAddr", 5) + \
+						  POP_ARG0 + \
+						  REPOSITION_SP + \
+						  RESTORE_VALUE("THAT", 1) + \
+						  RESTORE_VALUE("THIS", 2) + \
+						  RESTORE_VALUE("ARG", 3) + \
+						  RESTORE_VALUE("LCL", 4) + \
+						  GOTO_RETURN_ADDRESS;
+					
+	write(snippet);
+}
+
+void CodeWriter::writeCall(const std::string functionName, int nArgs)
+{
+	std::string returnLabel = m_FileName + "$ret." + std::to_string(m_ReturnIndex);
+	std::string snippet = std::string(\
+						"// call " + functionName + " " + std::to_string(nArgs) + "\n") + \
+						SAVE_RETURN_ADDRESS(returnLabel) + \
+						SAVE_SEGMENT("LCL") + \
+						SAVE_SEGMENT("ARG") + \
+						SAVE_SEGMENT("THIS") + \
+						SAVE_SEGMENT("THAT") + \
+						REPOSITION_ARG(nArgs) + \
+						REPOSITION_LCL + \
+						GOTO_SNIPPET(functionName);
+	write(snippet);
+	m_AsmStream << LABEL_SNIPPET(returnLabel) << std::endl;
+	m_ReturnIndex++;
+}
+
+void CodeWriter::write(const std::string str) 
+{
+	std::istringstream strStream(str);
+	std::string line;
+	while (std::getline(strStream, line, '\n'))
+	{
+		m_AsmStream << std::string(m_CurrentCommandInLabel ? "\t" : "") + line + "\n";
+	}
+
+	m_AsmStream << std::endl;
+}
+
+void CodeWriter::setFileName(const std::string filePath)
+{
+	m_FileName = getFileNameFromPath(filePath);
+	m_ReturnIndex = 0;
+	m_AsmStream << std::endl << "// file " << m_FileName << std::endl << std::endl;
 }
 
 void CodeWriter::close()

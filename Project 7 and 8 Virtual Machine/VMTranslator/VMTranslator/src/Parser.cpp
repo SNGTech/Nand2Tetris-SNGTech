@@ -45,7 +45,7 @@ CommandType Parser::getCommandType()
 		return CommandType::C_Label;
 	else if (arg0 == "goto")
 		return CommandType::C_Goto;
-	else if (arg0 == "if")
+	else if (arg0 == "if-goto")
 		return CommandType::C_If;
 	else if (arg0 == "function")
 		return CommandType::C_Function;
